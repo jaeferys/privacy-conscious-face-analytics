@@ -5,7 +5,7 @@ approval and after the current step is verified, committed, and pushed.
 
 1. **Specification — complete.** Define the business problem, metrics, privacy
    boundaries, non-goals, success criteria, risks, and initial architecture.
-2. **Detection pipeline — not started.** Benchmark candidate libraries and
+2. **Detection pipeline — complete.** Benchmark candidate libraries and
    implement a replaceable OpenCV-compatible detector returning bounding boxes
    and confidence values.
 3. **Ephemeral tracking — not started.** Add a justified tracker with

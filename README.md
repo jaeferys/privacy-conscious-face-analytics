@@ -56,7 +56,7 @@ or dataset is included yet.
 | Step | Deliverable | Status |
 |---|---|---|
 | 1 | Specification and scaffold | Complete |
-| 2 | Replaceable detection pipeline | Not started |
+| 2 | Replaceable detection pipeline | Complete |
 | 3 | Ephemeral tracking | Not started |
 | 4 | Aggregate analytics | Not started |
 | 5 | Fairness and robustness evaluation | Not started |
@@ -66,6 +66,16 @@ or dataset is included yet.
 
 Future steps require explicit approval and are tracked in
 [the roadmap](docs/roadmap.md).
+
+## Detection commands
+
+The detection layer is replaceable and emits geometry plus confidence only. It
+never writes frames or crops. See [the detection guide](docs/detection.md).
+
+```bash
+face-analytics benchmark-detector --detector opencv-haar --frames 100
+face-analytics inspect-source --detector mediapipe --webcam 0 --max-frames 300
+```
 
 ## Development
 

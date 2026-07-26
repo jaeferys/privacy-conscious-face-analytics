@@ -1,0 +1,96 @@
+"""Command-line entry points for privacy-conscious analytics workflows."""
+
+from __future__ import annotations
+
+import argparse
+from collections.abc import Sequence
+from pathlib import Path
+
+import numpy as np
+
+from face_analytics.benchmark import benchmark_detector
+from face_analytics.detection import MediaPipeDetector, OpenCVHaarDetector
+from face_analytics.detection.base import FaceDetector
+from face_analytics.frame_sources import (
+    FrameSource,
+    IterableFrameSource,
+    VideoFrameSource,
+    WebcamFrameSource,
+)
+
+
+def _detector(name: str, threshold: float) -> FaceDetector:
+    if name == "mediapipe":
+        return MediaPipeDetector(confidence_threshold=threshold)
+    if name == "opencv-haar":
+        return OpenCVHaarDetector(confidence_threshold=threshold)
+    raise ValueError(f"unsupported detector: {name}")
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="face-analytics",
+        description="Privacy-conscious aggregate face analytics",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    benchmark = subparsers.add_parser(
+        "benchmark-detector",
+        help="measure detector latency and throughput without saving frames",
+    )
+    benchmark.add_argument(
+        "--detector", choices=("mediapipe", "opencv-haar"), default="mediapipe"
+    )
+    benchmark.add_argument("--frames", type=int, default=30)
+    benchmark.add_argument("--width", type=int, default=640)
+    benchmark.add_argument("--height", type=int, default=480)
+    benchmark.add_argument("--confidence", type=float, default=0.5)
+
+    inspect = subparsers.add_parser(
+        "inspect-source",
+        help="count detections from a consented source without saving frames",
+    )
+    inspect.add_argument(
+        "--detector", choices=("mediapipe", "opencv-haar"), default="mediapipe"
+    )
+    source = inspect.add_mutually_exclusive_group(required=True)
+    source.add_argument("--webcam", type=int)
+    source.add_argument("--video", type=Path)
+    inspect.add_argument("--max-frames", type=int, default=300)
+    inspect.add_argument("--confidence", type=float, default=0.5)
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    detector = _detector(args.detector, args.confidence)
+    try:
+        source: FrameSource
+        if args.command == "benchmark-detector":
+            if args.width <= 0 or args.height <= 0:
+                raise ValueError("width and height must be positive")
+            blank = np.zeros((args.height, args.width, 3), dtype=np.uint8)
+            source = IterableFrameSource(blank.copy() for _ in range(args.frames))
+            result = benchmark_detector(detector, source, args.frames)
+        else:
+            source = (
+                WebcamFrameSource(args.webcam)
+                if args.webcam is not None
+                else VideoFrameSource(args.video)
+            )
+            try:
+                result = benchmark_detector(detector, source, args.max_frames)
+            finally:
+                source.close()
+    finally:
+        detector.close()
+    print(
+        f"frames={result.frames} detections={result.detections} "
+        f"elapsed_seconds={result.elapsed_seconds:.4f} "
+        f"fps={result.frames_per_second:.2f} "
+        f"mean_latency_ms={result.mean_latency_ms:.2f}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

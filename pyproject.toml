@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "privacy-conscious-face-analytics"
-version = "0.1.0"
+version = "0.2.0"
 description = "Privacy-conscious aggregate foot-traffic analytics for retail and events"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -25,6 +25,9 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
+
+[project.scripts]
+face-analytics = "face_analytics.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -51,6 +54,11 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 packages = ["face_analytics"]
+
+[[tool.mypy.overrides]]
+module = ["cv2", "mediapipe", "numpy", "numpy.*", "streamlit", "streamlit.*"]
+follow_imports = "skip"
+ignore_missing_imports = true
