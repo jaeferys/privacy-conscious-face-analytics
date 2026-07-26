@@ -32,6 +32,7 @@ class AggregateWindow:
     heatmap_rows: int
     heatmap_columns: int
     normalized_heatmap: tuple[float, ...]
+    data_source: str = "observed"
 
     def __post_init__(self) -> None:
         if self.window_start.tzinfo is None:
@@ -42,6 +43,8 @@ class AggregateWindow:
             raise ValueError("heatmap dimensions must be positive")
         if len(self.normalized_heatmap) != self.heatmap_rows * self.heatmap_columns:
             raise ValueError("heatmap length does not match its dimensions")
+        if self.data_source not in {"observed", "synthetic"}:
+            raise ValueError("data_source must be observed or synthetic")
 
     @property
     def average_occupancy(self) -> float:

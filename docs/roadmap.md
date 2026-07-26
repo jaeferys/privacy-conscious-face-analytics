@@ -14,7 +14,7 @@ approval and after the current step is verified, committed, and pushed.
    and heatmap metrics with aggregate-only persistence.
 5. **Fairness and robustness evaluation — complete.** Use licensed data and
    valid labels to measure performance by conditions and defensible subgroups.
-6. **Dashboard — not started.** Present occupancy, dwell, zone, and heatmap
+6. **Dashboard — complete.** Present occupancy, dwell, zone, and heatmap
    aggregates without raw faces or stable identifiers.
 7. **Privacy architecture write-up — not started.** Complete threat boundaries,
    retention rules, lifecycle evidence, and explicit non-goals.

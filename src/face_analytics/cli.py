@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import argparse
+import os
+import subprocess
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
 
 from face_analytics.benchmark import benchmark_detector
+from face_analytics.demo import generate_synthetic_windows
 from face_analytics.detection import MediaPipeDetector, OpenCVHaarDetector
 from face_analytics.detection.base import FaceDetector
 from face_analytics.evaluation import run_manifest_evaluation, write_report
@@ -84,6 +88,21 @@ def _parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--confidence", type=float, default=0.5)
     evaluate.add_argument("--iou", type=float, default=0.5)
     evaluate.add_argument("--max-images", type=int)
+
+    synthetic = subparsers.add_parser(
+        "generate-synthetic", help="write aggregate-only synthetic demo windows"
+    )
+    synthetic.add_argument(
+        "--db", type=Path, default=Path("artifacts/analytics.sqlite3")
+    )
+    synthetic.add_argument("--windows", type=int, default=48)
+    synthetic.add_argument("--seed", type=int, default=7)
+
+    dashboard = subparsers.add_parser("dashboard", help="start the Streamlit dashboard")
+    dashboard.add_argument(
+        "--db", type=Path, default=Path("artifacts/analytics.sqlite3")
+    )
+    dashboard.add_argument("--port", type=int, default=8501)
     return parser
 
 
@@ -100,6 +119,32 @@ def main(argv: Sequence[str] | None = None) -> int:
         deleted = store.clear()
         print(f"deleted aggregate windows: {deleted}")
         return 0
+    if args.command == "generate-synthetic":
+        store = AggregateStore(args.db)
+        store.initialize()
+        windows = generate_synthetic_windows(count=args.windows, seed=args.seed)
+        for window in windows:
+            store.save(window)
+        print(f"wrote synthetic aggregate windows: {len(windows)}")
+        return 0
+    if args.command == "dashboard":
+        environment = os.environ.copy()
+        environment["FACE_ANALYTICS_DB_PATH"] = str(args.db)
+        app_path = Path(__file__).parent / "dashboard" / "app.py"
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "streamlit",
+                "run",
+                str(app_path),
+                "--server.port",
+                str(args.port),
+            ],
+            check=False,
+            env=environment,
+        )
+        return completed.returncode
 
     detector = _detector(args.detector, args.confidence)
     try:

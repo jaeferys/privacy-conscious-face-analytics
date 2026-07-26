@@ -60,7 +60,7 @@ or dataset is included yet.
 | 3 | Ephemeral tracking | Complete |
 | 4 | Aggregate analytics | Complete |
 | 5 | Fairness and robustness evaluation | Complete |
-| 6 | Privacy-safe dashboard | Not started |
+| 6 | Privacy-safe dashboard | Complete |
 | 7 | Privacy architecture write-up | Not started |
 | 8 | Portfolio polish | Not started |
 
@@ -103,6 +103,19 @@ face-analytics evaluate \
   --detector mediapipe \
   --output-prefix reports/evaluation/wider-face
 ```
+
+## Synthetic dashboard demo
+
+Explore the interview-ready [Streamlit dashboard](docs/dashboard.md) without a
+webcam, footage, or face dataset:
+
+```bash
+face-analytics generate-synthetic --db artifacts/analytics.sqlite3 --windows 48
+face-analytics dashboard --db artifacts/analytics.sqlite3
+```
+
+Synthetic aggregate rows are explicitly labeled in storage and in the
+dashboard.
 
 ## Development
 

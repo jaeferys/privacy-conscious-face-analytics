@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "privacy-conscious-face-analytics"
-version = "0.5.0"
+version = "0.6.0"
 description = "Privacy-conscious aggregate foot-traffic analytics for retail and events"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -59,6 +59,15 @@ strict = true
 packages = ["face_analytics"]
 
 [[tool.mypy.overrides]]
-module = ["cv2", "mediapipe", "numpy", "numpy.*", "streamlit", "streamlit.*"]
+module = [
+  "cv2",
+  "mediapipe",
+  "numpy",
+  "numpy.*",
+  "pandas",
+  "pandas.*",
+  "streamlit",
+  "streamlit.*",
+]
 follow_imports = "skip"
 ignore_missing_imports = true

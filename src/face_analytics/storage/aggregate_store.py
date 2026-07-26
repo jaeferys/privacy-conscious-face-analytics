@@ -12,7 +12,7 @@ from pathlib import Path
 
 from face_analytics.analytics.models import AggregateWindow
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,10 +63,26 @@ class AggregateStore:
                     heatmap_rows INTEGER NOT NULL,
                     heatmap_columns INTEGER NOT NULL,
                     normalized_heatmap_json TEXT NOT NULL,
+                    data_source TEXT NOT NULL DEFAULT 'observed'
+                        CHECK(data_source IN ('observed', 'synthetic')),
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
                 """
             )
+            columns = {
+                str(row["name"])
+                for row in connection.execute(
+                    "PRAGMA table_info(aggregate_windows)"
+                ).fetchall()
+            }
+            if "data_source" not in columns:
+                connection.execute(
+                    """
+                    ALTER TABLE aggregate_windows
+                    ADD COLUMN data_source TEXT NOT NULL DEFAULT 'observed'
+                    CHECK(data_source IN ('observed', 'synthetic'))
+                    """
+                )
             connection.execute(
                 """
                 INSERT INTO schema_metadata(key, value)
@@ -85,8 +101,8 @@ class AggregateStore:
                     occupancy_sum, peak_occupancy, entries, exits, dwell_count,
                     dwell_total_seconds, dwell_histogram_json,
                     zone_aggregates_json, heatmap_rows, heatmap_columns,
-                    normalized_heatmap_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    normalized_heatmap_json, data_source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     record.window_start.isoformat(),
@@ -103,6 +119,7 @@ class AggregateStore:
                     record.heatmap_rows,
                     record.heatmap_columns,
                     json.dumps(record.normalized_heatmap),
+                    record.data_source,
                 ),
             )
             if cursor.lastrowid is None:
@@ -157,5 +174,6 @@ def _stored_window(row: sqlite3.Row) -> StoredWindow:
             heatmap_rows=int(row["heatmap_rows"]),
             heatmap_columns=int(row["heatmap_columns"]),
             normalized_heatmap=tuple(json.loads(row["normalized_heatmap_json"])),
+            data_source=str(row["data_source"]),
         ),
     )

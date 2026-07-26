@@ -12,7 +12,7 @@ import face_analytics  # noqa: E402
 
 class ScaffoldTests(unittest.TestCase):
     def test_package_has_version(self) -> None:
-        self.assertEqual(face_analytics.__version__, "0.5.0")
+        self.assertEqual(face_analytics.__version__, "0.6.0")
 
     def test_architecture_states_required_discard_flow(self) -> None:
         architecture = (ROOT / "docs" / "architecture.md").read_text(encoding="utf-8")
