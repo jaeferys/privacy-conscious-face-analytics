@@ -1,20 +1,22 @@
-# Initial architecture and data flow
+# Implemented architecture and data flow
 
 ## Required lifecycle
 
 ```mermaid
 flowchart LR
     subgraph volatile["Volatile processing boundary"]
-        F[Frame<br/>memory only]
-        D[Detection<br/>boxes + confidence]
-        T[Ephemeral tracking<br/>session-local ID]
-        A[Aggregation<br/>time and zone windows]
+        F[OpenCV frame source<br/>memory only]
+        D[Replaceable detector<br/>boxes + confidence]
+        T[Centroid/IoU tracker<br/>session-local ID]
+        A[AggregateAnalytics<br/>time, zone, heatmap windows]
         F --> D --> T --> A
     end
 
-    A --> P[(Persisted aggregate analytics)]
+    A --> P[(AggregateStore / SQLite<br/>aggregate rows only)]
+    P --> UI[Streamlit dashboard<br/>aggregate views]
     F --> XF[Discard frame after operation]
-    T --> XT[Destroy track at expiration]
+    T --> XT[Expire or reset track]
+    XT --> XI[Destroy temporary ID]
 
     classDef prohibited fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d;
     X[No crops, embeddings,<br/>identity labels, or face database]:::prohibited
@@ -32,6 +34,22 @@ flowchart LR
 | Ephemeral tracker | Current detections and volatile state | Session-local track events | Nothing |
 | Aggregator | Track events and configured zones | Windowed aggregate metrics | Aggregate metrics only |
 | Dashboard | Aggregate queries | Charts and summaries | Nothing beyond aggregate settings |
+
+## Implemented modules
+
+- `frame_sources.py`: consented webcam, explicit video, and generated in-memory
+  frames; no write method.
+- `detection/`: typed detector protocol, lazy MediaPipe adapter, and OpenCV
+  fallback.
+- `tracking/`: geometry-only ephemeral association with missed-frame and
+  monotonic-time expiration.
+- `analytics/`: transient per-track calculations converted into aggregate
+  windows, zones, dwell bins, and coarse heatmaps.
+- `storage/`: parameterized, versioned SQLite aggregate schema.
+- `evaluation/`: annotation-driven condition metrics with frames discarded after
+  inference.
+- `dashboard/` and `demo/`: aggregate views and image-free synthetic rows.
+- `privacy_checks.py`: repository and schema regression audit.
 
 ## Trust and retention boundaries
 

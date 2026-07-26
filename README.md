@@ -61,7 +61,7 @@ or dataset is included yet.
 | 4 | Aggregate analytics | Complete |
 | 5 | Fairness and robustness evaluation | Complete |
 | 6 | Privacy-safe dashboard | Complete |
-| 7 | Privacy architecture write-up | Not started |
+| 7 | Privacy architecture write-up | Complete |
 | 8 | Portfolio polish | Not started |
 
 Future steps require explicit approval and are tracked in
@@ -116,6 +116,15 @@ face-analytics dashboard --db artifacts/analytics.sqlite3
 
 Synthetic aggregate rows are explicitly labeled in storage and in the
 dashboard.
+
+## Privacy audit
+
+The implementation-level [privacy and threat assessment](docs/privacy.md) maps
+requirements to code and test evidence. Run:
+
+```bash
+face-analytics privacy-audit --root . --db artifacts/privacy-audit.sqlite3
+```
 
 ## Development
 

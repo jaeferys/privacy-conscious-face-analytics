@@ -22,6 +22,7 @@ from face_analytics.frame_sources import (
     VideoFrameSource,
     WebcamFrameSource,
 )
+from face_analytics.privacy_checks import run_privacy_audit
 from face_analytics.storage import AggregateStore
 
 
@@ -103,6 +104,14 @@ def _parser() -> argparse.ArgumentParser:
         "--db", type=Path, default=Path("artifacts/analytics.sqlite3")
     )
     dashboard.add_argument("--port", type=int, default=8501)
+
+    privacy = subparsers.add_parser(
+        "privacy-audit", help="scan repository files, source APIs, and SQLite schema"
+    )
+    privacy.add_argument("--root", type=Path, default=Path.cwd())
+    privacy.add_argument(
+        "--db", type=Path, default=Path("artifacts/privacy-audit.sqlite3")
+    )
     return parser
 
 
@@ -145,6 +154,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             env=environment,
         )
         return completed.returncode
+    if args.command == "privacy-audit":
+        issues = run_privacy_audit(args.root.resolve(), args.db)
+        if issues:
+            for issue in issues:
+                print(f"FAIL: {issue}")
+            return 1
+        print("Privacy audit passed: repository artifacts, source APIs, and schema")
+        return 0
 
     detector = _detector(args.detector, args.confidence)
     try:

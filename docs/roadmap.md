@@ -16,7 +16,7 @@ approval and after the current step is verified, committed, and pushed.
    valid labels to measure performance by conditions and defensible subgroups.
 6. **Dashboard — complete.** Present occupancy, dwell, zone, and heatmap
    aggregates without raw faces or stable identifiers.
-7. **Privacy architecture write-up — not started.** Complete threat boundaries,
+7. **Privacy architecture write-up — complete.** Complete threat boundaries,
    retention rules, lifecycle evidence, and explicit non-goals.
 8. **Portfolio polish — not started.** Refine the narrative, tests, architecture
    visual, reproducibility notes, and consented demo material.
