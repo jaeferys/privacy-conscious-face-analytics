@@ -27,3 +27,9 @@ jobs:
         run: ruff format --check .
       - name: Run type checks
         run: mypy
+      - name: Build package
+        run: python -m build
+      - name: Run CLI and privacy smoke checks
+        run: |
+          face-analytics --help
+          face-analytics privacy-audit --root . --db artifacts/ci-privacy.sqlite3

@@ -22,8 +22,10 @@ from face_analytics.frame_sources import (
     VideoFrameSource,
     WebcamFrameSource,
 )
+from face_analytics.pipeline import run_pipeline
 from face_analytics.privacy_checks import run_privacy_audit
 from face_analytics.storage import AggregateStore
+from face_analytics.tracking import EphemeralTracker
 
 
 def _detector(name: str, threshold: float) -> FaceDetector:
@@ -112,6 +114,22 @@ def _parser() -> argparse.ArgumentParser:
     privacy.add_argument(
         "--db", type=Path, default=Path("artifacts/privacy-audit.sqlite3")
     )
+
+    pipeline = subparsers.add_parser(
+        "run-pipeline",
+        help="process a consented source in memory into one aggregate window",
+    )
+    pipeline.add_argument(
+        "--detector", choices=("mediapipe", "opencv-haar"), default="mediapipe"
+    )
+    pipeline_source = pipeline.add_mutually_exclusive_group(required=True)
+    pipeline_source.add_argument("--webcam", type=int)
+    pipeline_source.add_argument("--video", type=Path)
+    pipeline.add_argument("--max-frames", type=int, default=300)
+    pipeline.add_argument("--confidence", type=float, default=0.5)
+    pipeline.add_argument(
+        "--db", type=Path, default=Path("artifacts/analytics.sqlite3")
+    )
     return parser
 
 
@@ -165,6 +183,28 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     detector = _detector(args.detector, args.confidence)
     try:
+        if args.command == "run-pipeline":
+            pipeline_source: FrameSource = (
+                WebcamFrameSource(args.webcam)
+                if args.webcam is not None
+                else VideoFrameSource(args.video)
+            )
+            try:
+                pipeline_result = run_pipeline(
+                    detector=detector,
+                    source=pipeline_source,
+                    tracker=EphemeralTracker(),
+                    store=AggregateStore(args.db),
+                    max_frames=args.max_frames,
+                )
+            finally:
+                pipeline_source.close()
+            print(
+                f"frames={pipeline_result.frames_processed} "
+                f"detections={pipeline_result.detections_processed} "
+                f"aggregate_row_id={pipeline_result.aggregate_row_id}"
+            )
+            return 0
         if args.command == "evaluate":
             report = run_manifest_evaluation(
                 args.manifest,

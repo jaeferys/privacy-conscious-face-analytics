@@ -2,100 +2,148 @@
 
 [![CI](https://github.com/jaeferys/privacy-conscious-face-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/jaeferys/privacy-conscious-face-analytics/actions/workflows/ci.yml)
 
-A portfolio project for retail and event operators who need useful foot-traffic
-and engagement signals without building an identity-recognition system.
+A portfolio-ready retail and event analytics system that turns consented camera
+frames into aggregate occupancy, flow, dwell, zone, and heatmap insights without
+building an identity-recognition database.
 
-The planned system processes camera frames in memory, detects visible people,
-uses short-lived session-local tracks, and retains aggregate measurements such
-as occupancy, dwell time, zone traffic, heatmaps, and time-of-day trends. Raw
-frames and expired tracks are discarded. The project explicitly excludes face
-matching, persisted face embeddings, identity labels, face databases, and
-cross-session re-identification.
-
-This approach reduces data collection but should not be described as anonymous
-by default. Camera placement, source-footage consent and licensing, operational
-access, aggregate retention, and small-group reporting can still create privacy
-risks. Accuracy and fairness claims will be limited to measured results on
-documented evaluation data.
-
-## Project goals
-
-- Give retail and event teams actionable aggregate traffic and engagement
-  metrics.
-- Demonstrate a privacy-by-design data lifecycle with narrow retention.
-- Evaluate detector robustness and subgroup performance only where a licensed
-  dataset provides ethically and legally appropriate labels.
-- Produce a transparent, testable portfolio implementation with measured
-  limitations.
-
-## Data lifecycle
-
-```mermaid
-flowchart LR
-    A[Frame in memory] --> B[Detection<br/>bounding boxes + confidence]
-    B --> C[Ephemeral tracking<br/>session-local IDs]
-    C --> D[Aggregation<br/>occupancy, dwell, zones, heatmap]
-    D --> E[(Aggregate analytics only)]
-    A --> F[Discard frame]
-    C --> G[Discard expired track]
-```
-
-The required terminal flow is:
+The core privacy boundary is simple:
 
 `frame -> detection -> ephemeral tracking -> aggregation -> frame and track discarded`
 
-See [the architecture notes](docs/architecture.md) for trust boundaries and
-retention rules.
+Raw frames remain in memory for the current operation. Geometry-only tracking
+IDs exist inside one process session, expire when tracks time out, and are never
+written to SQLite. The dashboard reads aggregate windows only.
 
-## Current status
+This reduces retained data but does not guarantee anonymity, fairness, accuracy,
+or legal compliance. Residual risks, dataset constraints, and evidence gaps are
+documented rather than hidden.
 
-Step 1 establishes the specification, privacy boundaries, architecture, and
-minimal Python scaffold. No detector, tracker, analytics database, dashboard,
-or dataset is included yet.
+## Why this project
 
-| Step | Deliverable | Status |
-|---|---|---|
-| 1 | Specification and scaffold | Complete |
-| 2 | Replaceable detection pipeline | Complete |
-| 3 | Ephemeral tracking | Complete |
-| 4 | Aggregate analytics | Complete |
-| 5 | Fairness and robustness evaluation | Complete |
-| 6 | Privacy-safe dashboard | Complete |
-| 7 | Privacy architecture write-up | Complete |
-| 8 | Portfolio polish | Not started |
+Retail and event teams need answers such as:
 
-Future steps require explicit approval and are tracked in
-[the roadmap](docs/roadmap.md).
+- How busy is the space now, and when does traffic peak?
+- How long do visitors dwell in aggregate?
+- Which zones attract traffic?
+- Where do coarse spatial heatmaps show congestion or engagement?
 
-## Detection commands
+Those operational questions usually do not require names, face matching,
+embeddings, demographic guesses, a face database, or cross-session
+re-identification. This project demonstrates that narrower architecture.
 
-The detection layer is replaceable and emits geometry plus confidence only. It
-never writes frames or crops. See [the detection guide](docs/detection.md).
+## Portfolio differentiators
 
-```bash
-face-analytics benchmark-detector --detector opencv-haar --frames 100
-face-analytics inspect-source --detector mediapipe --webcam 0 --max-frames 300
+1. **Credible business use case:** occupancy, entries/exits, dwell distributions,
+   zone engagement, time-of-day traffic, and heatmaps for stores and events.
+2. **Privacy-by-design implementation:** volatile frames, replaceable
+   identity-free detection, expiring geometry-only tracks, and aggregate-only
+   SQLite storage.
+3. **Honest evaluation:** tested precision/recall/F1 and condition-level
+   robustness tooling, with real-world and demographic evidence gaps stated
+   explicitly.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Consented frame<br/>memory only] --> B[MediaPipe or OpenCV<br/>box + confidence]
+    B --> C[Centroid/IoU tracker<br/>temporary process-local ID]
+    C --> D[In-memory aggregation<br/>coarse time + space bins]
+    D --> E[(SQLite<br/>aggregate windows only)]
+    E --> F[Streamlit dashboard<br/>aggregate views]
+    A --> X[Discard frame]
+    C --> Y[Expire/reset track<br/>destroy ID]
 ```
 
-The geometry-only [ephemeral tracker](docs/tracking.md) uses short-lived,
-process-local IDs that expire on missed-frame or monotonic-time limits. It does
-not use appearance matching and never restores state across sessions.
+See [implemented architecture](docs/architecture.md) and the
+[privacy and threat assessment](docs/privacy.md).
 
-The [aggregate analytics layer](docs/analytics.md) calculates coarse occupancy,
-flow, dwell, zone, and heatmap records. SQLite contains aggregate windows only:
+## Features
+
+- Replaceable detector protocol with typed boxes, confidence, and relative
+  geometry—no identity or embedding fields.
+- Lazy MediaPipe detector on supported Python versions.
+- OpenCV bundled Haar fallback for environments such as local Python 3.14 where
+  MediaPipe wheels are unavailable.
+- Webcam, explicit local-video, and generated in-memory frame sources.
+- Geometry-only centroid/IoU tracking with configurable missed-frame and
+  monotonic-time expiration.
+- Occupancy, scene flow, dwell histogram, zone transitions/dwell, and normalized
+  coarse heatmaps.
+- Versioned, parameterized SQLite aggregate schema with deletion controls.
+- Condition-aware evaluation from ignored local manifests.
+- Recruiter-safe synthetic aggregate generator.
+- Streamlit dashboard with no face, track, or trajectory views.
+- Automated repository and schema privacy regression audit.
+
+## Quick start: synthetic demo
+
+Python 3.11 or 3.12 is recommended for MediaPipe. The rest of the project and
+the OpenCV fallback also run on this workstation's Python 3.14.
 
 ```bash
-face-analytics init-db --db artifacts/analytics.sqlite3
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e ".[dev]"
+
+face-analytics generate-synthetic \
+  --db artifacts/analytics.sqlite3 \
+  --windows 48 \
+  --seed 7
+
+face-analytics dashboard --db artifacts/analytics.sqlite3
+```
+
+Open `http://localhost:8501`. The dashboard visibly labels synthetic data and
+requires no webcam, footage, dataset, or face image.
+
+Clear generated rows:
+
+```bash
 face-analytics clear-aggregates --db artifacts/analytics.sqlite3
 ```
 
-## Evaluation status
+## Optional consented camera workflow
 
-The tested [evaluation framework](docs/evaluation.md) calculates precision,
-recall, F1, latency, throughput, and condition-level failure metrics from an
-ignored local manifest. No real-world dataset has been downloaded and no
-accuracy or demographic-fairness result is claimed. Demographic attributes are
-never inferred.
+Only use a camera or local video when you have a lawful, documented consent and
+retention basis. Keep all media outside Git.
+
+Run the full volatile pipeline and persist one aggregate window:
+
+```bash
+face-analytics run-pipeline \
+  --detector mediapipe \
+  --webcam 0 \
+  --max-frames 300 \
+  --db artifacts/analytics.sqlite3
+```
+
+Or inspect detector throughput without tracking/storage:
+
+```bash
+face-analytics inspect-source \
+  --detector mediapipe \
+  --video /absolute/path/to/consented-video.mp4 \
+  --max-frames 300
+```
+
+The project has no command that saves frames or face crops.
+
+## Detection benchmark
+
+Measure latency and throughput on generated blank frames:
+
+```bash
+face-analytics benchmark-detector --detector opencv-haar --frames 100
+```
+
+This is a performance smoke test, not an accuracy benchmark.
+
+## Evaluation
+
+The [evaluation framework](docs/evaluation.md) calculates precision, recall,
+F1, latency, throughput, and metrics for supplied condition labels such as
+easy/medium/hard, small faces, occlusion, pose, and lighting.
 
 ```bash
 face-analytics evaluate \
@@ -104,62 +152,104 @@ face-analytics evaluate \
   --output-prefix reports/evaluation/wider-face
 ```
 
-## Synthetic dashboard demo
+No real-world face dataset was downloaded for this repository. Real detector
+accuracy remains unmeasured. WIDER FACE is documented as a candidate, but its
+image terms, provenance, consent implications, and repository suitability must
+be reviewed before download. Demographic traits are never inferred, and
+demographic fairness is not measured.
 
-Explore the interview-ready [Streamlit dashboard](docs/dashboard.md) without a
-webcam, footage, or face dataset:
-
-```bash
-face-analytics generate-synthetic --db artifacts/analytics.sqlite3 --windows 48
-face-analytics dashboard --db artifacts/analytics.sqlite3
-```
-
-Synthetic aggregate rows are explicitly labeled in storage and in the
-dashboard.
-
-## Privacy audit
-
-The implementation-level [privacy and threat assessment](docs/privacy.md) maps
-requirements to code and test evidence. Run:
-
-```bash
-face-analytics privacy-audit --root . --db artifacts/privacy-audit.sqlite3
-```
-
-## Development
-
-The stack is Python 3.11+, OpenCV, MediaPipe where supported, SQLite,
-Streamlit, pytest, Ruff, and mypy. MediaPipe currently lacks Python 3.14 wheels,
-so its integration is optional on that interpreter and exercised in CI on a
-supported Python version.
-
-Create an environment and install the project:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -e ".[dev]"
-```
-
-Run the scaffold validation:
+## Quality and privacy checks
 
 ```bash
 pytest
 ruff check .
 ruff format --check .
 mypy
+python -m build
+face-analytics privacy-audit \
+  --root . \
+  --db artifacts/privacy-audit.sqlite3
 ```
 
-## Responsible use
+CI runs the same test, lint, format, type, build, CLI, and privacy checks.
 
-This repository is intended for consented, lawful retail/event analytics
-experimentation. Do not add production footage, face crops, embeddings,
-identity labels, restricted datasets, or model weights to Git. Dataset
-licensing, consent basis, retention, access controls, and evaluation limitations
-must be documented before any demo input is adopted.
+## Data retained
+
+| Data | In memory | SQLite | Git |
+|---|---:|---:|---:|
+| Current frame | Yes | No | No |
+| Detection box/confidence | Yes | No | No |
+| Temporary track ID/position | Yes | No | No |
+| Aggregate occupancy/flow/dwell | Yes | Yes | No generated DB |
+| Aggregate zone/heatmap bins | Yes | Yes | No generated DB |
+| Synthetic/observed label | Yes | Yes | Source code only |
+| Face crop or embedding | Never created | No | No |
+| Identity/demographic label | Never created/inferred | No | No |
+
+Run the full [privacy audit](docs/privacy.md) for requirement-to-test evidence.
+
+## Project structure
+
+```text
+src/face_analytics/
+├── analytics/       # transient aggregation, zones, heatmaps, models
+├── dashboard/       # aggregate-only Streamlit app and pure transformations
+├── demo/            # deterministic synthetic aggregate windows
+├── detection/       # detector protocol, MediaPipe, OpenCV fallback
+├── evaluation/      # condition-aware metrics and reports
+├── storage/         # versioned aggregate-only SQLite repository
+├── tracking/        # centroid/IoU ephemeral tracker
+├── cli.py           # documented workflows
+├── frame_sources.py # in-memory webcam/video/generated sources
+├── pipeline.py      # end-to-end volatile vertical slice
+└── privacy_checks.py
+
+tests/               # deterministic functional and privacy evidence
+docs/                # architecture, evaluation, privacy, demo, portfolio
+scripts/             # standalone privacy scan
+```
+
+## Technology choices and tradeoffs
+
+- **Python/OpenCV:** accessible computer-vision ecosystem and clear frame
+  lifecycle; native packages require interpreter compatibility care.
+- **MediaPipe:** lightweight preferred detector, but unavailable on Python 3.14
+  at project time.
+- **OpenCV Haar fallback:** no downloaded weights and works locally, but is a
+  legacy detector with weaker expected robustness.
+- **Centroid/IoU tracker:** transparent, deterministic, appearance-free, and
+  easy to expire; less robust through long occlusion than ByteTrack.
+- **SQLite:** inspectable and sufficient for a portfolio/demo; production
+  concurrency, encryption, backups, and retention require deployment design.
+- **Streamlit:** fastest path to an interview-ready aggregate dashboard; offers
+  less custom UI control than a dedicated frontend.
+
+## Limitations
+
+- Entry/exit currently represents track lifecycle in one camera view, not a
+  calibrated directional doorway crossing.
+- No real-world detector accuracy or demographic fairness result is available.
+- Geometry-only tracking can still link observations within a running session.
+- Coarse aggregates reduce but do not eliminate time/location inference.
+- Camera governance, runtime memory, logs, host security, access controls,
+  backups, and legal assessment remain operator responsibilities.
+- MediaPipe integration is CI-compatible on supported Python versions but was
+  not executed locally on Python 3.14.
+
+## Roadmap status
+
+All eight planned build milestones are implemented and independently committed:
+specification, detection, tracking, aggregation, evaluation, dashboard, privacy
+architecture, and portfolio polish. A real dataset evaluation remains a
+deliberate evidence gap pending terms and consent review.
+
+See the [roadmap](docs/roadmap.md), [portfolio summary](docs/portfolio.md),
+[walkthrough script](docs/demo-script.md), [recording instructions](docs/recording.md),
+and [release checklist](docs/release-checklist.md).
 
 ## License
 
 Project source code is released under the [MIT License](LICENSE). Datasets,
-pretrained models, and third-party dependencies retain their own licenses and
-must be reviewed separately before use or redistribution.
+pretrained models, MediaPipe assets, OpenCV data, and other dependencies retain
+their own licenses. The project license does not grant rights to third-party
+images or datasets.

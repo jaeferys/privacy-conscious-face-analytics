@@ -18,12 +18,10 @@ approval and after the current step is verified, committed, and pushed.
    aggregates without raw faces or stable identifiers.
 7. **Privacy architecture write-up — complete.** Complete threat boundaries,
    retention rules, lifecycle evidence, and explicit non-goals.
-8. **Portfolio polish — not started.** Refine the narrative, tests, architecture
+8. **Portfolio polish — complete.** Refine the narrative, tests, architecture
    visual, reproducibility notes, and consented demo material.
 
-## Gate for Step 2
+## Completed build
 
-Before Step 2, explicitly approve beginning detector work. Detector selection
-must be based on a small benchmark rather than assumed, and no demo input may be
-downloaded until its license, consent basis, privacy implications, and
-repository suitability are reviewed.
+All implementation milestones are complete. Real-world evaluation remains
+pending a dataset terms, consent, provenance, and repository-suitability review.

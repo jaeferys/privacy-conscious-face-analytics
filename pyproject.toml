@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "privacy-conscious-face-analytics"
-version = "0.7.0"
+version = "1.0.0"
 description = "Privacy-conscious aggregate foot-traffic analytics for retail and events"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "Jaeferys" }
 ]
@@ -20,7 +21,6 @@ dependencies = [
 ]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -31,6 +31,7 @@ face-analytics = "face_analytics.cli:main"
 
 [project.optional-dependencies]
 dev = [
+  "build>=1.2,<2",
   "mypy>=1.13,<2",
   "pytest>=8.3,<10",
   "ruff>=0.8,<1",

@@ -1,9 +1,5 @@
-"""Privacy-conscious aggregate foot-traffic analytics.
-
-Step 1 intentionally exposes package metadata only. Detection, tracking,
-aggregation, evaluation, and dashboard behavior belong to later approved steps.
-"""
+"""Privacy-conscious aggregate foot-traffic analytics."""
 
 __all__ = ["__version__"]
 
-__version__ = "0.7.0"
+__version__ = "1.0.0"
