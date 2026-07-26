@@ -10,7 +10,7 @@ approval and after the current step is verified, committed, and pushed.
    and confidence values.
 3. **Ephemeral tracking — complete.** Add a justified tracker with
    process/session-local IDs and tested expiration behavior.
-4. **Aggregation — not started.** Produce time-windowed occupancy, dwell, zone,
+4. **Aggregation — complete.** Produce time-windowed occupancy, dwell, zone,
    and heatmap metrics with aggregate-only persistence.
 5. **Fairness and robustness evaluation — not started.** Use licensed data and
    valid labels to measure performance by conditions and defensible subgroups.

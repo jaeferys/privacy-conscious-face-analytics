@@ -17,6 +17,7 @@ from face_analytics.frame_sources import (
     VideoFrameSource,
     WebcamFrameSource,
 )
+from face_analytics.storage import AggregateStore
 
 
 def _detector(name: str, threshold: float) -> FaceDetector:
@@ -57,11 +58,32 @@ def _parser() -> argparse.ArgumentParser:
     source.add_argument("--video", type=Path)
     inspect.add_argument("--max-frames", type=int, default=300)
     inspect.add_argument("--confidence", type=float, default=0.5)
+
+    init_db = subparsers.add_parser(
+        "init-db", help="initialize an aggregate-only SQLite database"
+    )
+    init_db.add_argument("--db", type=Path, default=Path("artifacts/analytics.sqlite3"))
+    clear = subparsers.add_parser(
+        "clear-aggregates", help="delete generated aggregate rows"
+    )
+    clear.add_argument("--db", type=Path, default=Path("artifacts/analytics.sqlite3"))
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "init-db":
+        store = AggregateStore(args.db)
+        store.initialize()
+        print(f"initialized aggregate-only database: {args.db}")
+        return 0
+    if args.command == "clear-aggregates":
+        store = AggregateStore(args.db)
+        store.initialize()
+        deleted = store.clear()
+        print(f"deleted aggregate windows: {deleted}")
+        return 0
+
     detector = _detector(args.detector, args.confidence)
     try:
         source: FrameSource

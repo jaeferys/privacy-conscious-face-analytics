@@ -58,7 +58,7 @@ or dataset is included yet.
 | 1 | Specification and scaffold | Complete |
 | 2 | Replaceable detection pipeline | Complete |
 | 3 | Ephemeral tracking | Complete |
-| 4 | Aggregate analytics | Not started |
+| 4 | Aggregate analytics | Complete |
 | 5 | Fairness and robustness evaluation | Not started |
 | 6 | Privacy-safe dashboard | Not started |
 | 7 | Privacy architecture write-up | Not started |
@@ -80,6 +80,14 @@ face-analytics inspect-source --detector mediapipe --webcam 0 --max-frames 300
 The geometry-only [ephemeral tracker](docs/tracking.md) uses short-lived,
 process-local IDs that expire on missed-frame or monotonic-time limits. It does
 not use appearance matching and never restores state across sessions.
+
+The [aggregate analytics layer](docs/analytics.md) calculates coarse occupancy,
+flow, dwell, zone, and heatmap records. SQLite contains aggregate windows only:
+
+```bash
+face-analytics init-db --db artifacts/analytics.sqlite3
+face-analytics clear-aggregates --db artifacts/analytics.sqlite3
+```
 
 ## Development
 
