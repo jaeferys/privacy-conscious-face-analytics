@@ -1,0 +1,72 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials*.json
+secrets*.json
+
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+
+# Model artifacts and large binaries
+models/
+weights/
+checkpoints/
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.tflite
+*.engine
+
+# Raw, restricted, or biometric-source data
+data/raw/
+data/private/
+data/restricted/
+datasets/
+footage/
+videos/
+frames/
+face_crops/
+crops/
+embeddings/
+identities/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Generated analytics and local databases
+artifacts/
+outputs/
+reports/generated/
+*.db
+*.sqlite
+*.sqlite3
+*.parquet
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
