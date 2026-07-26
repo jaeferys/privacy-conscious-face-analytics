@@ -57,7 +57,7 @@ or dataset is included yet.
 |---|---|---|
 | 1 | Specification and scaffold | Complete |
 | 2 | Replaceable detection pipeline | Complete |
-| 3 | Ephemeral tracking | Not started |
+| 3 | Ephemeral tracking | Complete |
 | 4 | Aggregate analytics | Not started |
 | 5 | Fairness and robustness evaluation | Not started |
 | 6 | Privacy-safe dashboard | Not started |
@@ -76,6 +76,10 @@ never writes frames or crops. See [the detection guide](docs/detection.md).
 face-analytics benchmark-detector --detector opencv-haar --frames 100
 face-analytics inspect-source --detector mediapipe --webcam 0 --max-frames 300
 ```
+
+The geometry-only [ephemeral tracker](docs/tracking.md) uses short-lived,
+process-local IDs that expire on missed-frame or monotonic-time limits. It does
+not use appearance matching and never restores state across sessions.
 
 ## Development
 

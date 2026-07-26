@@ -8,7 +8,7 @@ approval and after the current step is verified, committed, and pushed.
 2. **Detection pipeline — complete.** Benchmark candidate libraries and
    implement a replaceable OpenCV-compatible detector returning bounding boxes
    and confidence values.
-3. **Ephemeral tracking — not started.** Add a justified tracker with
+3. **Ephemeral tracking — complete.** Add a justified tracker with
    process/session-local IDs and tested expiration behavior.
 4. **Aggregation — not started.** Produce time-windowed occupancy, dwell, zone,
    and heatmap metrics with aggregate-only persistence.
