@@ -11,6 +11,7 @@ import numpy as np
 from face_analytics.benchmark import benchmark_detector
 from face_analytics.detection import MediaPipeDetector, OpenCVHaarDetector
 from face_analytics.detection.base import FaceDetector
+from face_analytics.evaluation import run_manifest_evaluation, write_report
 from face_analytics.frame_sources import (
     FrameSource,
     IterableFrameSource,
@@ -67,6 +68,22 @@ def _parser() -> argparse.ArgumentParser:
         "clear-aggregates", help="delete generated aggregate rows"
     )
     clear.add_argument("--db", type=Path, default=Path("artifacts/analytics.sqlite3"))
+
+    evaluate = subparsers.add_parser(
+        "evaluate", help="evaluate a detector against an ignored local manifest"
+    )
+    evaluate.add_argument("--manifest", type=Path, required=True)
+    evaluate.add_argument(
+        "--output-prefix",
+        type=Path,
+        default=Path("reports/evaluation/detector"),
+    )
+    evaluate.add_argument(
+        "--detector", choices=("mediapipe", "opencv-haar"), default="mediapipe"
+    )
+    evaluate.add_argument("--confidence", type=float, default=0.5)
+    evaluate.add_argument("--iou", type=float, default=0.5)
+    evaluate.add_argument("--max-images", type=int)
     return parser
 
 
@@ -86,6 +103,17 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     detector = _detector(args.detector, args.confidence)
     try:
+        if args.command == "evaluate":
+            report = run_manifest_evaluation(
+                args.manifest,
+                detector,
+                confidence_threshold=args.confidence,
+                iou_threshold=args.iou,
+                max_images=args.max_images,
+            )
+            json_path, markdown_path = write_report(report, args.output_prefix)
+            print(f"wrote evaluation: {json_path} and {markdown_path}")
+            return 0
         source: FrameSource
         if args.command == "benchmark-detector":
             if args.width <= 0 or args.height <= 0:

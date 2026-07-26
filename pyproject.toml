@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "privacy-conscious-face-analytics"
-version = "0.4.0"
+version = "0.5.0"
 description = "Privacy-conscious aggregate foot-traffic analytics for retail and events"
 readme = "README.md"
 requires-python = ">=3.11"

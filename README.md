@@ -59,7 +59,7 @@ or dataset is included yet.
 | 2 | Replaceable detection pipeline | Complete |
 | 3 | Ephemeral tracking | Complete |
 | 4 | Aggregate analytics | Complete |
-| 5 | Fairness and robustness evaluation | Not started |
+| 5 | Fairness and robustness evaluation | Complete |
 | 6 | Privacy-safe dashboard | Not started |
 | 7 | Privacy architecture write-up | Not started |
 | 8 | Portfolio polish | Not started |
@@ -87,6 +87,21 @@ flow, dwell, zone, and heatmap records. SQLite contains aggregate windows only:
 ```bash
 face-analytics init-db --db artifacts/analytics.sqlite3
 face-analytics clear-aggregates --db artifacts/analytics.sqlite3
+```
+
+## Evaluation status
+
+The tested [evaluation framework](docs/evaluation.md) calculates precision,
+recall, F1, latency, throughput, and condition-level failure metrics from an
+ignored local manifest. No real-world dataset has been downloaded and no
+accuracy or demographic-fairness result is claimed. Demographic attributes are
+never inferred.
+
+```bash
+face-analytics evaluate \
+  --manifest datasets/wider-face/validation.jsonl \
+  --detector mediapipe \
+  --output-prefix reports/evaluation/wider-face
 ```
 
 ## Development
