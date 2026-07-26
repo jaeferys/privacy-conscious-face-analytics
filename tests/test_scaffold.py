@@ -1,9 +1,8 @@
 """Validation for the Step 1 project scaffold."""
 
-from pathlib import Path
 import sys
 import unittest
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -16,9 +15,7 @@ class ScaffoldTests(unittest.TestCase):
         self.assertEqual(face_analytics.__version__, "0.1.0")
 
     def test_architecture_states_required_discard_flow(self) -> None:
-        architecture = (ROOT / "docs" / "architecture.md").read_text(
-            encoding="utf-8"
-        )
+        architecture = (ROOT / "docs" / "architecture.md").read_text(encoding="utf-8")
         required_flow = (
             "frame -> detection -> ephemeral tracking -> aggregation "
             "-> frame and track discarded"

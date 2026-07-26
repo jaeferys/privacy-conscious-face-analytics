@@ -1,5 +1,7 @@
 # Privacy-Conscious Face Analytics
 
+[![CI](https://github.com/jaeferys/privacy-conscious-face-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/jaeferys/privacy-conscious-face-analytics/actions/workflows/ci.yml)
+
 A portfolio project for retail and event operators who need useful foot-traffic
 and engagement signals without building an identity-recognition system.
 
@@ -67,16 +69,26 @@ Future steps require explicit approval and are tracked in
 
 ## Development
 
-The initial stack is Python 3.11+ with a `src` package layout. Later steps may
-add an OpenCV-compatible detector interface and Streamlit dashboard after
-candidate libraries are benchmarked. No runtime dependency is selected in
-Step 1.
+The stack is Python 3.11+, OpenCV, MediaPipe where supported, SQLite,
+Streamlit, pytest, Ruff, and mypy. MediaPipe currently lacks Python 3.14 wheels,
+so its integration is optional on that interpreter and exercised in CI on a
+supported Python version.
+
+Create an environment and install the project:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e ".[dev]"
+```
 
 Run the scaffold validation:
 
 ```bash
-python3 -m unittest discover -s tests -v
-python3 -m compileall -q src tests
+pytest
+ruff check .
+ruff format --check .
+mypy
 ```
 
 ## Responsible use
@@ -86,3 +98,9 @@ experimentation. Do not add production footage, face crops, embeddings,
 identity labels, restricted datasets, or model weights to Git. Dataset
 licensing, consent basis, retention, access controls, and evaluation limitations
 must be documented before any demo input is adopted.
+
+## License
+
+Project source code is released under the [MIT License](LICENSE). Datasets,
+pretrained models, and third-party dependencies retain their own licenses and
+must be reviewed separately before use or redistribution.

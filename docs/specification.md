@@ -41,11 +41,19 @@ that ephemeral tracking makes a deployment anonymous.
 
 ### Product metrics
 
-- Current, average, and peak occupancy per time window.
-- Entry and exit counts at configured boundaries.
-- Dwell-time distribution, reported in privacy-preserving aggregate bins.
-- Zone entries, exits, and aggregate dwell time.
-- Spatial heatmap counts with configurable resolution and suppression rules.
+- **Occupancy:** the number of active ephemeral tracks in the configured scene
+  at a point in time; average and peak values are calculated per time window.
+- **Entry and exit:** counts of tracks crossing a configured scene boundary in
+  the corresponding direction during a time window.
+- **Traffic:** aggregate entry, exit, and occupancy measurements grouped into
+  coarse time-of-day windows.
+- **Dwell time:** elapsed monotonic time between a temporary track's first and
+  final observation, stored only as aggregate count, sum, and histogram bins.
+- **Zone entry and exit:** counts of transitions across a configured zone
+  boundary, never a persistent sequence of per-person transitions.
+- **Zone dwell:** aggregate elapsed time accumulated inside a configured zone.
+- **Heatmap:** normalized counts of temporary track centroids assigned to coarse
+  spatial bins; no path or bounding-box history is persisted.
 - Processing throughput and latency.
 
 ### Quality metrics
@@ -66,6 +74,29 @@ that ephemeral tracking makes a deployment anonymous.
 - Persisting production frames, face crops, raw footage, or stable identifiers.
 - Claiming universal accuracy, fairness, anonymity, or legal compliance.
 - Making high-stakes decisions about individuals.
+
+## Functional requirements
+
+- Accept consented webcam or explicitly provided local-video frames without
+  saving them.
+- Return face bounding boxes and confidence values through a replaceable
+  detector interface.
+- Maintain geometry-only, process-local tracks and expire them deterministically.
+- Produce occupancy, flow, dwell, zone, and heatmap aggregates.
+- Persist only coarse aggregate records in SQLite.
+- Evaluate detector outputs against externally supplied annotations.
+- Provide a Streamlit dashboard and synthetic aggregate-data demonstration.
+- Provide commands to generate and delete local synthetic aggregates.
+
+## Non-functional requirements
+
+- Keep public interfaces typed and components independently testable.
+- Run tests without a camera, downloaded dataset, or identifiable imagery.
+- Fail clearly when optional detector or camera dependencies are unavailable.
+- Use parameterized SQL and bounded aggregation granularity.
+- Keep generated data, model artifacts, footage, and datasets out of Git.
+- Document reproducibility, licensing, measured evidence, and limitations.
+- Prefer simple maintainable modules over distributed or enterprise machinery.
 
 ## Privacy and retention boundaries
 

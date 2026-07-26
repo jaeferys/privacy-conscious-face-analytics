@@ -61,6 +61,7 @@ identities/
 artifacts/
 outputs/
 reports/generated/
+reports/evaluation/
 *.db
 *.sqlite
 *.sqlite3
